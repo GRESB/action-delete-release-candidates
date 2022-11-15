@@ -11,6 +11,6 @@ jobs:
     name: Delete Release Candidates
     runs-on: ubuntu-latest
     steps:
-      - uses: GRESB/action-delete-release-candidates
+      - uses: ./
         with:
           release-identifier: '-pr${{ github.event.number }}-rc'
