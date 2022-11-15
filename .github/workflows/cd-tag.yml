@@ -1,0 +1,20 @@
+name: Continues Delivery - Tag
+
+
+on:
+  push:
+    branches:
+      - main
+
+
+jobs:
+  tag:
+    name: Create a git tag
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Git tag
+        uses: GRESB/action-git-tag@main
+        with:
+          create: true
+          github-token: ${{ secrets.BOT_PAT }}
