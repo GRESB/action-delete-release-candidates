@@ -1,0 +1,86 @@
+name: 'Delete Release Candidates'
+description: 'Delete Release Candidates and related artefacts'
+inputs:
+  release-identifier:
+    description: 'A string that will be used to identify the releases to be deleted (eg. "pr1234").'
+    required: true
+  ecr-name:
+    description: 'The name of an ECR where to look for container images tagged with the releases we are deleting. The name is not the full URL, it is just the last bit of the URL.'
+    required: false
+  s3-bucket:
+    description: 'The name of a S3 bucket where to look for artefacts tagged with the releases we are deleting.'
+    required: false
+  s3-object-key-prefix:
+    description: 'The S3 object key prefix used to look for artefacts tagged with the releases we are deleting.'
+    required: false
+  aws-access-key-id:
+    description: 'The AWS access key ID providing access to delete artefacts from either or both ECR and S3 Bucket.'
+    required: false
+  aws-secret-access-key:
+    description: 'The AWS secret access key providing access to delete artefacts from either or both ECR and S3 Bucket.'
+    required: false
+  aws-region:
+    description: 'The AWS region.'
+    required: false
+    default: 'eu-central-1'
+outputs:
+  releases:
+    description: 'The releases that were identified and deleted.'
+    value: ${{ steps.outputs.delete-github.releases }}
+runs:
+  using: "composite"
+  steps:
+    - name: Delete GitHub release candidates
+      id: delete-github
+      uses: wow-actions/delete-stale-releases@v1.2.3
+      with:
+        key: name
+        include: '*${{ inputs.release-identifier }}*'
+        include_prerelease: true
+        include_draft: true
+        delete_tags: true
+    - name: Authenticate to AWS
+      uses: aws-actions/configure-aws-credentials@v1
+      if: always() && inputs.aws-access-key-id && inputs.aws-secret-access-key
+      id: aws-credentials
+      with:
+        aws-access-key-id: ${{ inputs.aws-access-key-id }}
+        aws-secret-access-key: ${{ inputs.aws-secret-access-key }}
+        aws-region: ${{ inputs.aws-region }}
+        mask-aws-account-id: false
+    - name: Delete Artefacts in S3
+      if: always() && inputs.s3-bucket
+      shell: bash
+      run: |
+        s3_app_url="s3://${bucket_name}/${object_key_prefix}"
+        packages="$( aws s3 ls "${s3_app_url}/" | grep "${release_identifier}" | tr -s ' ' | cut -d ' ' -f 4 || true )"
+        if [[ -n "${packages}" ]]; then
+          echo "==> Deleting packages from S3: \n${packages}"
+          while read package; do
+            echo "==> Deleting S3 package ${package}";
+            s3_url="${s3_app_url}/${package}"
+            aws s3 rm "${s3_url}"
+          done <<<"${packages}"
+        fi
+      env:
+        bucket_name: ${{ inputs.s3-bucket }}
+        object_key_prefix: ${{ inputs.s3-object-key-prefix }}
+        release_identifier: ${{ inputs.release-identifier }}
+    - name: Delete ECR release candidates
+      if: always() && inputs.ecr-name
+      shell: bash
+      run: |
+        image_tags="$( \
+          aws ecr list-images --repository-name "${ecr_name}" \
+          | jq --arg tagFilter "^.*${release_identifier}.*$" -r '.imageIds[] .imageTag | select(. | test($tagFilter))' \
+        )"
+        if [[ -n "${image_tags}" ]]; then
+          echo "==> Deleting images from ECR: \n${image_tags}"
+          while read tag; do
+            echo "==> Deleting ECR tag ${tag}";
+            aws ecr batch-delete-image --repository-name "${ecr_name}" --image-ids "imageTag=${tag}"
+          done <<<"${image_tags}"
+        fi
+      env:
+        ecr_name: ${{ inputs.ecr-name }}
+        release_identifier: ${{ inputs.release-identifier }}
