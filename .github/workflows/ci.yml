@@ -1,0 +1,35 @@
+name: Continuous Integration - PR Tag
+
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - '*'
+
+
+jobs:
+  tag:
+    name: Create a git tag
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Create git tag
+        id: tag
+        uses: GRESB/action-git-tag@main
+        with:
+          create: true
+          pr-number: ${{ github.event.pull_request.number }}
+          github-token: ${{ secrets.BOT_PAT }}
+      - name: Echo created tag
+        if: github.event.pull_request.number
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            ## Created tag for PR push
+            Tag: ${{ steps.tag.outputs.tag }}
+            SHA: ${{ steps.tag.outputs.sha }}
+            Is Final: ${{ steps.tag.outputs.is-final }}
