@@ -1,0 +1,51 @@
+name: Continues Delivery - Release
+
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-pr[0-9]+-rc.[0-9]+'
+
+
+jobs:
+  tag:
+    name: Release git tag
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Read Pushed Tag
+        id: tag
+        uses: GRESB/action-git-tag@main
+        with:
+          read: true
+          ref: ${{ github.ref }}
+      - name: Set commit status as pending
+        uses: myrotvorets/set-commit-status-action@1.1.5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          status: pending
+          context: Create release (push tag)
+          sha: ${{ steps.tag.outputs.sha }}
+          targetUrl: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+      - name: Release
+        id: release
+        uses: GRESB/action-release@main
+        with:
+          name: ${{ steps.tag.outputs.tag }}
+          is-final: ${{ steps.tag.outputs.is-final }}
+          pr-number: ${{ steps.tag.outputs.pr-number }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          body: |
+            Release action executed!
+      - name: Set final commit status
+        uses: myrotvorets/set-commit-status-action@1.1.5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          status: ${{ steps.release.outcome }}
+          context: Create release (push tag)
+          sha: ${{ steps.tag.outputs.sha }}
+          targetUrl: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
