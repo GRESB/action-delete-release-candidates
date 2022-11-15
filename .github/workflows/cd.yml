@@ -19,7 +19,7 @@ jobs:
           fetch-depth: 0
       - name: Read Pushed Tag
         id: tag
-        uses: GRESB/action-git-tag@main
+        uses: GRESB/action-git-tag@fix-tag-sha-detection
         with:
           read: true
           ref: ${{ github.ref }}
