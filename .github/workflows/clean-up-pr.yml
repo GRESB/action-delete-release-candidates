@@ -1,0 +1,16 @@
+name: Delete Release Candidates
+
+
+on:
+  pull_request:
+    types: [ closed ]
+
+
+jobs:
+  delete-release-candidates:
+    name: Delete Release Candidates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: GRESB/action-delete-release-candidates
+        with:
+          release-identifier: '-pr${{ github.event.number }}-rc'
