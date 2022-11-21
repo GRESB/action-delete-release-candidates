@@ -32,7 +32,7 @@ runs:
   steps:
     - name: Delete GitHub release candidates
       id: delete-github
-      uses: wow-actions/delete-stale-releases@v1.2.3
+      uses: wow-actions/delete-stale-releases@v1.2.1 # later releases are broken https://github.com/wow-actions/delete-stale-releases/issues/3
       with:
         key: name
         include: '*${{ inputs.release-identifier }}*'
