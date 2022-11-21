@@ -39,6 +39,7 @@ runs:
   steps:
     - name: Delete GitHub release candidates
       id: delete-github
+      if: inputs.release-identifier
       uses: wow-actions/delete-stale-releases@v1.2.1 # later releases are broken https://github.com/wow-actions/delete-stale-releases/issues/3
       with:
         key: name
@@ -50,7 +51,7 @@ runs:
         github_token: ${{ inputs.github-token }}
     - name: Authenticate to AWS
       uses: aws-actions/configure-aws-credentials@v1
-      if: always() && inputs.aws-access-key-id && inputs.aws-secret-access-key
+      if: always() && inputs.release-identifier && inputs.aws-access-key-id && inputs.aws-secret-access-key
       id: aws-credentials
       with:
         aws-access-key-id: ${{ inputs.aws-access-key-id }}
@@ -58,9 +59,14 @@ runs:
         aws-region: ${{ inputs.aws-region }}
         mask-aws-account-id: false
     - name: Delete Artefacts in S3
-      if: always() && inputs.s3-bucket
+      if: always() && inputs.release-identifier && inputs.s3-bucket && inputs.s3-object-key-prefix
       shell: bash
       run: |
+        if [[ "${release_identifier}" == "" ]]; then
+          echo "==# Skipping S3 artefact deletion: no release identifier provided";
+          exit 1
+        fi
+
         s3_app_url="s3://${bucket_name}/${object_key_prefix}"
         packages="$( aws s3 ls "${s3_app_url}/" | grep "${release_identifier}" | tr -s ' ' | cut -d ' ' -f 4 || true )"
         if [[ -n "${packages}" ]]; then
@@ -76,9 +82,14 @@ runs:
         object_key_prefix: ${{ inputs.s3-object-key-prefix }}
         release_identifier: ${{ inputs.release-identifier }}
     - name: Delete ECR release candidates
-      if: always() && inputs.ecr-name
+      if: always() && inputs.release-identifier && inputs.ecr-name
       shell: bash
       run: |
+        if [[ "${release_identifier}" == "" ]]; then
+          echo "==# Skipping ECR image deletion: no release identifier provided";
+          exit 1
+        fi
+
         image_tags="$( \
           aws ecr list-images --repository-name "${ecr_name}" \
           | jq --arg tagFilter "^.*${release_identifier}.*$" -r '.imageIds[] .imageTag | select(. | test($tagFilter))' \
