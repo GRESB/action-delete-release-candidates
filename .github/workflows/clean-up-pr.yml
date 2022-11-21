@@ -3,12 +3,13 @@ name: Delete Release Candidates
 
 on:
   pull_request:
-    types: [ closed ]
+    types: [ closed, labeled ]
 
 
 jobs:
   delete-release-candidates:
     name: Delete Release Candidates
+    if: github.event.action == 'closed' || github.event.label.name == 'delete-releases'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
