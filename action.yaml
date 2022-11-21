@@ -4,6 +4,10 @@ inputs:
   release-identifier:
     description: 'A string that will be used to identify the releases to be deleted (eg. "pr1234").'
     required: true
+  keep-latest-count:
+    description: 'The number of matches releases to keep, ordered from latest to oldest.'
+    required: true
+    default: '0'
   ecr-name:
     description: 'The name of an ECR where to look for container images tagged with the releases we are deleting. The name is not the full URL, it is just the last bit of the URL.'
     required: false
@@ -39,6 +43,7 @@ runs:
         include_prerelease: true
         include_draft: true
         delete_tags: true
+        keep_latest_count: ${{ inputs.keep-latest-count }}
     - name: Authenticate to AWS
       uses: aws-actions/configure-aws-credentials@v1
       if: always() && inputs.aws-access-key-id && inputs.aws-secret-access-key

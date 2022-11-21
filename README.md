@@ -10,15 +10,16 @@ This action is used to automate the removal of release candidates that are typic
 
 ## Inputs
 
-| Input                 | Description                                                                                                                                                                                                      | Required | Default        |
-|-----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|----------------|
-| release-identifier    | A string that will be used to identify the releases to be deleted (eg. "pr1234").                                                                                                                                | true     |                |
-| ecr-name              | The name of an ECR where to look for container images tagged with the releases we are deleting. The name is not the full URL, it is just the last bit of the URL.                                                | false    |                |
-| s3-bucket             | The name of a S3 bucket where to look for artefacts tagged with the releases we are deleting.                                                                                                                    | false    |                |
-| s3-object-key-prefix  | The S3 object key prefix used to look for artefacts tagged with the releases we are deleting.                                                                                                                    | false    |                |
-| aws-access-key-id     | The AWS access key ID providing access to delete artefacts from either or both ECR and S3 Bucket.                                                                                                                | false    |                |
-| aws-secret-access-key | The runtimes where to deploy the release.                                                                                                                                                                        | false    |                |
-| aws-region            | The AWS region.                                                                                                                                                                                                  | false    | 'eu-central-1' |
+| Input                 | Description                                                                                                                                                       | Required | Default        |
+|-----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|----------------|
+| release-identifier    | A string that will be used to identify the releases to be deleted (eg. "pr1234").                                                                                 | true     |                |
+| keep-latest-count     | The number of matches releases to keep, ordered from latest to oldest.                                                                                            | true     | '0'            |
+| ecr-name              | The name of an ECR where to look for container images tagged with the releases we are deleting. The name is not the full URL, it is just the last bit of the URL. | false    |                |
+| s3-bucket             | The name of a S3 bucket where to look for artefacts tagged with the releases we are deleting.                                                                     | false    |                |
+| s3-object-key-prefix  | The S3 object key prefix used to look for artefacts tagged with the releases we are deleting.                                                                     | false    |                |
+| aws-access-key-id     | The AWS access key ID providing access to delete artefacts from either or both ECR and S3 Bucket.                                                                 | false    |                |
+| aws-secret-access-key | The runtimes where to deploy the release.                                                                                                                         | false    |                |
+| aws-region            | The AWS region.                                                                                                                                                   | false    | 'eu-central-1' |
 
 ## Outputs
 
