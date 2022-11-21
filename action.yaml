@@ -30,6 +30,10 @@ inputs:
     description: 'The AWS region.'
     required: false
     default: 'eu-central-1'
+  dry-run:
+    description: 'Whether to only print the artefacts that are matched for deletion instead of deleting them.'
+    required: true
+    default: 'true'
 outputs:
   releases:
     description: 'The releases that were identified and deleted.'
@@ -74,13 +78,18 @@ runs:
           while read package; do
             echo "==> Deleting S3 package ${package}";
             s3_url="${s3_app_url}/${package}"
-            aws s3 rm "${s3_url}"
+            if [[ "${dry_run}" == "false" ]]; then
+              aws s3 rm "${s3_url}"
+            else
+              echo "==> [Dry Run] aws s3 rm ${s3_url}"
+            fi
           done <<<"${packages}"
         fi
       env:
         bucket_name: ${{ inputs.s3-bucket }}
         object_key_prefix: ${{ inputs.s3-object-key-prefix }}
         release_identifier: ${{ inputs.release-identifier }}
+        dry_run: ${{ inputs.dry-run }}
     - name: Delete ECR release candidates
       if: always() && inputs.release-identifier && inputs.ecr-name
       shell: bash
@@ -98,9 +107,14 @@ runs:
           echo "==> Deleting images from ECR: \n${image_tags}"
           while read tag; do
             echo "==> Deleting ECR tag ${tag}";
-            aws ecr batch-delete-image --repository-name "${ecr_name}" --image-ids "imageTag=${tag}"
+            if [[ "${dry_run}" == "false" ]]; then 
+              aws ecr batch-delete-image --repository-name "${ecr_name}" --image-ids "imageTag=${tag}"
+            else
+              echo "==> [Dry Run] aws ecr batch-delete-image --repository-name ${ecr_name} --image-ids imageTag=${tag}"
+            fi
           done <<<"${image_tags}"
         fi
       env:
         ecr_name: ${{ inputs.ecr-name }}
         release_identifier: ${{ inputs.release-identifier }}
+        dry_run: ${{ inputs.dry-run }}

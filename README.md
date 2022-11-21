@@ -21,6 +21,7 @@ This action is used to automate the removal of release candidates that are typic
 | aws-access-key-id     | The AWS access key ID providing access to delete artefacts from either or both ECR and S3 Bucket.                                                                 | false    |                |
 | aws-secret-access-key | The runtimes where to deploy the release.                                                                                                                         | false    |                |
 | aws-region            | The AWS region.                                                                                                                                                   | false    | 'eu-central-1' |
+| dry-run               | Whether to only print the artefacts that are matched for deletion instead of deleting them.                                                                       | true     | 'true'         |
 
 ## Outputs
 
