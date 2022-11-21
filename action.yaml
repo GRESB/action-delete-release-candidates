@@ -17,6 +17,9 @@ inputs:
   s3-object-key-prefix:
     description: 'The S3 object key prefix used to look for artefacts tagged with the releases we are deleting.'
     required: false
+  github-token:
+    description: 'The github token used to delete the releases and tags.'
+    required: true
   aws-access-key-id:
     description: 'The AWS access key ID providing access to delete artefacts from either or both ECR and S3 Bucket.'
     required: false
@@ -44,6 +47,7 @@ runs:
         include_draft: true
         delete_tags: true
         keep_latest_count: ${{ inputs.keep-latest-count }}
+        github_token: ${{ inputs.github-token }}
     - name: Authenticate to AWS
       uses: aws-actions/configure-aws-credentials@v1
       if: always() && inputs.aws-access-key-id && inputs.aws-secret-access-key

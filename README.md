@@ -17,6 +17,7 @@ This action is used to automate the removal of release candidates that are typic
 | ecr-name              | The name of an ECR where to look for container images tagged with the releases we are deleting. The name is not the full URL, it is just the last bit of the URL. | false    |                |
 | s3-bucket             | The name of a S3 bucket where to look for artefacts tagged with the releases we are deleting.                                                                     | false    |                |
 | s3-object-key-prefix  | The S3 object key prefix used to look for artefacts tagged with the releases we are deleting.                                                                     | false    |                |
+| github-token          | The github token used to delete the releases and tags.                                                                                                            | true     |                |
 | aws-access-key-id     | The AWS access key ID providing access to delete artefacts from either or both ECR and S3 Bucket.                                                                 | false    |                |
 | aws-secret-access-key | The runtimes where to deploy the release.                                                                                                                         | false    |                |
 | aws-region            | The AWS region.                                                                                                                                                   | false    | 'eu-central-1' |
@@ -53,6 +54,7 @@ jobs:
       - uses: GRESB/action-delete-release-candidates
         with:
           release-identifier: '-pr${{ github.event.number }}-rc'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 ## Remove GitHub Releases and S3 Artefacts
@@ -79,6 +81,7 @@ jobs:
           release-identifier: '-pr${{ github.event.number }}-rc'
           s3-bucket: 'my-bucket'
           s3-object-key-prefix: 'my-app/packages'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           aws-access-key-id: ${{ secrets.aws-access-key-id }}
           aws-secret-access-key: ${{ secrets.aws-secret-access-key }}
 ```
@@ -106,6 +109,7 @@ jobs:
         with:
           release-identifier: '-pr${{ github.event.number }}-rc'
           ecr-name: 'my-app-registry'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           aws-access-key-id: ${{ secrets.aws-access-key-id }}
           aws-secret-access-key: ${{ secrets.aws-secret-access-key }}
 ```

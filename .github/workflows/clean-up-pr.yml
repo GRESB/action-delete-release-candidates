@@ -16,4 +16,5 @@ jobs:
       - name: Delete release candidates
         uses: ./
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           release-identifier: '-pr${{ github.event.number }}-rc'
