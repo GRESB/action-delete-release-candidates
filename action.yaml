@@ -47,7 +47,7 @@ runs:
       uses: wow-actions/delete-stale-releases@v1.2.1 # later releases are broken https://github.com/wow-actions/delete-stale-releases/issues/3
       with:
         key: name
-        include: ${{ inputs.release-identifier }}
+        include: '*${{ inputs.release-identifier }}*'
         include_prerelease: true
         include_draft: true
         delete_tags: true
