@@ -54,7 +54,7 @@ runs:
         keep_latest_count: ${{ inputs.keep-latest-count }}
         github_token: ${{ inputs.github-token }}
     - name: Authenticate to AWS
-      uses: aws-actions/configure-aws-credentials@v1
+      uses: aws-actions/configure-aws-credentials@v1-node16
       if: always() && inputs.release-identifier && inputs.aws-access-key-id && inputs.aws-secret-access-key
       id: aws-credentials
       with:
