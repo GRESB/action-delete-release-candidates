@@ -84,6 +84,8 @@ runs:
               echo "==> [Dry Run] aws s3 rm ${s3_url}"
             fi
           done <<<"${packages}"
+        else
+          echo "==> No packages found in '${s3_app_url}' using filter '${release_identifier}'"
         fi
       env:
         bucket_name: ${{ inputs.s3-bucket }}
@@ -113,6 +115,8 @@ runs:
               echo "==> [Dry Run] aws ecr batch-delete-image --repository-name ${ecr_name} --image-ids imageTag=${tag}"
             fi
           done <<<"${image_tags}"
+        else
+          echo "==> No container images found in ECR '${ecr_name}' using filter '${release_identifier}'"
         fi
       env:
         ecr_name: ${{ inputs.ecr-name }}
