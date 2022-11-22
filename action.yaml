@@ -74,7 +74,7 @@ runs:
         s3_app_url="s3://${bucket_name}/${object_key_prefix}"
         packages="$( aws s3 ls "${s3_app_url}/" | grep "${release_identifier}" | tr -s ' ' | cut -d ' ' -f 4 || true )"
         if [[ -n "${packages}" ]]; then
-          echo "==> Deleting packages from S3: \n${packages}"
+          echo -e "==> Deleting packages from S3: \n${packages}"
           while read package; do
             echo "==> Deleting S3 package ${package}";
             s3_url="${s3_app_url}/${package}"
@@ -104,7 +104,7 @@ runs:
           | jq --arg tagFilter "^.*${release_identifier}.*$" -r '.imageIds[] .imageTag | select(. | test($tagFilter))' \
         )"
         if [[ -n "${image_tags}" ]]; then
-          echo "==> Deleting images from ECR: \n${image_tags}"
+          echo -e "==> Deleting images from ECR: \n${image_tags}"
           while read tag; do
             echo "==> Deleting ECR tag ${tag}";
             if [[ "${dry_run}" == "false" ]]; then 
