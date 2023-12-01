@@ -103,7 +103,7 @@ runs:
 
         image_tags="$( \
           aws ecr list-images --repository-name "${ecr_name}" \
-          | jq --arg tagFilter "^.*${release_identifier}.*$" -r '.imageIds[] .imageTag | select(. | test($tagFilter))' \
+          | jq --arg tagFilter "^.*${release_identifier}.*$" -r '.imageIds[] .imageTag | select(. !=null ) | select(. | test($tagFilter))' \
         )"
         if [[ -n "${image_tags}" ]]; then
           echo -e "==> Deleting images from ECR: \n${image_tags}"
