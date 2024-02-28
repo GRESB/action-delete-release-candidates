@@ -20,6 +20,9 @@ inputs:
   github-token:
     description: 'The github token used to delete the releases and tags.'
     required: true
+  aws-role-arn:
+    description: 'The AWS IAM Role providing access to delete artefacts from either or both ECR and S3 Bucket.'
+    required: false    
   aws-access-key-id:
     description: 'The AWS access key ID providing access to delete artefacts from either or both ECR and S3 Bucket.'
     required: false
@@ -54,10 +57,11 @@ runs:
         keep_latest_count: ${{ inputs.keep-latest-count }}
         github_token: ${{ inputs.github-token }}
     - name: Authenticate to AWS
-      uses: aws-actions/configure-aws-credentials@v1-node16
+      uses: aws-actions/configure-aws-credentials@v4
       if: always() && inputs.release-identifier && inputs.aws-access-key-id && inputs.aws-secret-access-key
       id: aws-credentials
       with:
+        role-to-assume: ${{ inputs.aws-role-arn }}
         aws-access-key-id: ${{ inputs.aws-access-key-id }}
         aws-secret-access-key: ${{ inputs.aws-secret-access-key }}
         aws-region: ${{ inputs.aws-region }}
