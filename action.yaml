@@ -58,7 +58,7 @@ runs:
         github_token: ${{ inputs.github-token }}
     - name: Authenticate to AWS
       uses: aws-actions/configure-aws-credentials@v4
-      if: always() && inputs.release-identifier && inputs.aws-access-key-id && inputs.aws-secret-access-key
+      if: always() && inputs.release-identifier && ( (inputs.aws-access-key-id && inputs.aws-secret-access-key) || inputs.aws-role-arn )
       id: aws-credentials
       with:
         role-to-assume: ${{ inputs.aws-role-arn }}
