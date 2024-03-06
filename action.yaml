@@ -156,6 +156,5 @@ runs:
         package-version-ids: ${{ steps.get-package-details.outputs.version-ids }}
         package-name: ${{ inputs.github-package-name }}
         package-type: 'maven'
-      id: get-package-details
       env:
         GH_TOKEN: ${{ inputs.github-token }}
