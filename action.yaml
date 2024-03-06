@@ -17,12 +17,15 @@ inputs:
   s3-object-key-prefix:
     description: 'The S3 object key prefix used to look for artefacts tagged with the releases we are deleting.'
     required: false
+  github-package-name:
+    description: 'The name of the GitHub packages to delete.'
+    required: false
   github-token:
     description: 'The github token used to delete the releases and tags.'
     required: true
   aws-role-arn:
     description: 'The AWS IAM Role providing access to delete artefacts from either or both ECR and S3 Bucket.'
-    required: false    
+    required: false
   aws-access-key-id:
     description: 'The AWS access key ID providing access to delete artefacts from either or both ECR and S3 Bucket.'
     required: false
@@ -44,18 +47,25 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Delete GitHub release candidates
-      id: delete-github
-      if: inputs.release-identifier
-      uses: wow-actions/delete-stale-releases@v1.2.1 # later releases are broken https://github.com/wow-actions/delete-stale-releases/issues/3
-      with:
-        key: name
-        include: '*${{ inputs.release-identifier }}*'
-        include_prerelease: true
-        include_draft: true
-        delete_tags: true
-        keep_latest_count: ${{ inputs.keep-latest-count }}
-        github_token: ${{ inputs.github-token }}
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
+    - name: Delete Release
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        release_identifier: ${{ inputs.release-identifier }}
+      run: |
+        tags="$( gh release list --repo "${GITHUB_REPOSITORY}" | awk '{print $3}' | grep "${release_identifier}" )"
+        if [[ -n "${tags}" ]]; then
+          echo -e "==> Deleting GitHub releases: \n${tags}"
+          while read tag; do
+            echo "==> Deleting GitHub release ${tag}";
+            gh release delete "${tag}" --repo "${GITHUB_REPOSITORY}" --yes
+            git tag -d "${tag}"
+          done <<<"${tags}"
+        else
+          echo "==> No releases found using filter '${release_identifier}'"
+        fi
     - name: Authenticate to AWS
       uses: aws-actions/configure-aws-credentials@v4
       if: always() && inputs.release-identifier && ( (inputs.aws-access-key-id && inputs.aws-secret-access-key) || inputs.aws-role-arn )
@@ -126,3 +136,32 @@ runs:
         ecr_name: ${{ inputs.ecr-name }}
         release_identifier: ${{ inputs.release-identifier }}
         dry_run: ${{ inputs.dry-run }}
+    - name: "[ Clean up failed release ] Get package details"
+      if: always() && inputs.release-identifier && inputs.github-package-name
+      id: get-package-details
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        release_identifier: ${{ inputs.release-identifier }}
+      run: |
+        version_ids=$( \
+        gh api \
+          -H "Accept: application/vnd.github+json" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          /orgs/GRESB/packages/maven/${package_name}/versions \
+          |  jq -r --arg identifier "${release_identifier}" 'map(select(.name | contains($identifier))) | map(.id) | join(", ")' \
+        )
+
+        echo "DEBUG :: release_identifier = ${release_identifier}"
+        echo "DEBUG :: version_ids = ${version_ids}"
+
+        echo "version-ids=${version_ids}" >> "${GITHUB_OUTPUT}"
+    - name: Delete GitHub Packages release candidates
+      if: always() && inputs.release-identifier && inputs.github-package-name
+      uses: actions/delete-package-versions@v4
+      with:
+        package-version-ids: ${{ steps.get-package-details.outputs.version-ids }}
+        package-name: ${{ inputs.github-package-name }}
+        package-type: 'maven'
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
