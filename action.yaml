@@ -47,21 +47,18 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
     - name: Delete Release
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.github-token }}
         release_identifier: ${{ inputs.release-identifier }}
       run: |
-        tags="$( gh release list --repo "${GITHUB_REPOSITORY}" | awk '{print $3}' | grep "${release_identifier}" )"
+        tags="$( gh release list --repo "${GITHUB_REPOSITORY}" --json tagName | jq -r '.[] | .tagName' | grep "${release_identifier}" )"
         if [[ -n "${tags}" ]]; then
           echo -e "==> Deleting GitHub releases: \n${tags}"
           while read tag; do
             echo "==> Deleting GitHub release ${tag}";
-            gh release delete "${tag}" --repo "${GITHUB_REPOSITORY}" --yes
-            git tag -d "${tag}"
+            gh release delete "${tag}" --cleanup-tag --repo "${GITHUB_REPOSITORY}" --yes
           done <<<"${tags}"
         else
           echo "==> No releases found using filter '${release_identifier}'"
