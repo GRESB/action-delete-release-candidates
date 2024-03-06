@@ -47,6 +47,8 @@ outputs:
 runs:
   using: "composite"
   steps:
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
     - name: Delete Release
       shell: bash
       env:
