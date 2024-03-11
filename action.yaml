@@ -53,7 +53,7 @@ runs:
         GH_TOKEN: ${{ inputs.github-token }}
         release_identifier: ${{ inputs.release-identifier }}
       run: |
-        tags="$( gh release list --repo "${GITHUB_REPOSITORY}" --json tagName | jq -r '.[] | .tagName' | grep "${release_identifier}" )"
+        tags="$( gh release list --repo "${GITHUB_REPOSITORY}" --json tagName | jq -r '.[] | .tagName' | grep -- "${release_identifier}" )"
         if [[ -n "${tags}" ]]; then
           echo -e "==> Deleting GitHub releases: \n${tags}"
           while read tag; do
@@ -83,7 +83,7 @@ runs:
         fi
 
         s3_app_url="s3://${bucket_name}/${object_key_prefix}"
-        packages="$( aws s3 ls "${s3_app_url}/" | grep "${release_identifier}" | tr -s ' ' | cut -d ' ' -f 4 || true )"
+        packages="$( aws s3 ls "${s3_app_url}/" | grep -- "${release_identifier}" | tr -s ' ' | cut -d ' ' -f 4 || true )"
         if [[ -n "${packages}" ]]; then
           echo -e "==> Deleting packages from S3: \n${packages}"
           while read package; do
