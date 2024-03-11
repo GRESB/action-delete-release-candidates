@@ -17,8 +17,9 @@ This action is used to automate the removal of release candidates that are typic
 | ecr-name              | The name of an ECR where to look for container images tagged with the releases we are deleting. The name is not the full URL, it is just the last bit of the URL. | false    |                |
 | s3-bucket             | The name of a S3 bucket where to look for artefacts tagged with the releases we are deleting.                                                                     | false    |                |
 | s3-object-key-prefix  | The S3 object key prefix used to look for artefacts tagged with the releases we are deleting.                                                                     | false    |                |
+| github-package-name   | The name of the GitHub packages to delete.                                                                                                                        | false    |                |
 | github-token          | The github token used to delete the releases and tags.                                                                                                            | true     |                |
-| aws-role-arn          | The AWS IAM role providing access to delete artefacts from either or both ECR and S3 Bucket.                                                                 | false    |                |
+| aws-role-arn          | The AWS IAM role providing access to delete artefacts from either or both ECR and S3 Bucket.                                                                      | false    |                |
 | aws-access-key-id     | The AWS access key ID providing access to delete artefacts from either or both ECR and S3 Bucket.                                                                 | false    |                |
 | aws-secret-access-key | The runtimes where to deploy the release.                                                                                                                         | false    |                |
 | aws-region            | The AWS region.                                                                                                                                                   | false    | 'eu-central-1' |
@@ -114,4 +115,30 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           aws-access-key-id: ${{ secrets.aws-access-key-id }}
           aws-secret-access-key: ${{ secrets.aws-secret-access-key }}
+```
+
+## Remove GitHub Releases and packages from GitHub
+
+The following workflow configuration removes GitHub releases and corresponding packages from GitHub when a pull
+request is closed.
+
+```yaml
+name: Delete Release Candidates and ECR Container Images
+
+
+on:
+  pull_request:
+    types: [ closed ]
+
+
+jobs:
+  delete-release-candidates:
+    name: Delete Release Candidates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: GRESB/action-delete-release-candidates
+        with:
+          release-identifier: '-pr${{ github.event.number }}-rc'
+          github-package-name: 'com.gresb.java_library'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
