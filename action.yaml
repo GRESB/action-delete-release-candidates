@@ -20,6 +20,10 @@ inputs:
   github-package-name:
     description: 'The name of the GitHub packages to delete.'
     required: false
+  github-package-type:
+    description: 'The type of the GitHub packages to delete. See package_type under query parameters at https://docs.github.com/en/rest/packages/packages?apiVersion=2022-11-28#list-packages-for-an-organization--parameters'
+    required: false
+    default: 'maven'
   github-token:
     description: 'The github token used to delete the releases and tags.'
     required: true
@@ -140,12 +144,13 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.github-token }}
         release_identifier: ${{ inputs.release-identifier }}
+        package_type: ${{ inputs.github-package-type }}
       run: |
         version_ids=$( \
         gh api \
           -H "Accept: application/vnd.github+json" \
           -H "X-GitHub-Api-Version: 2022-11-28" \
-          /orgs/GRESB/packages/maven/${package_name}/versions \
+          /orgs/GRESB/packages/${package_type}/${package_name}/versions \
           |  jq -r --arg identifier "${release_identifier}" 'map(select(.name | contains($identifier))) | map(.id) | join(", ")' \
         )
 
@@ -159,6 +164,6 @@ runs:
       with:
         package-version-ids: ${{ steps.get-package-details.outputs.version-ids }}
         package-name: ${{ inputs.github-package-name }}
-        package-type: 'maven'
+        package-type: ${{ inputs.github-package-type }}
       env:
         GH_TOKEN: ${{ inputs.github-token }}
