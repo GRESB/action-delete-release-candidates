@@ -57,7 +57,7 @@ runs:
         GH_TOKEN: ${{ inputs.github-token }}
         release_identifier: ${{ inputs.release-identifier }}
       run: |
-        tags="$( gh release list --repo "${GITHUB_REPOSITORY}" --json tagName | jq -r '.[] | .tagName' | grep -- "${release_identifier}" )"
+        tags="$( gh release list --repo "${GITHUB_REPOSITORY}" --json tagName | jq -r '.[] | .tagName' | grep -- "${release_identifier}" || true )"
         if [[ -n "${tags}" ]]; then
           echo -e "==> Deleting GitHub releases: \n${tags}"
           while read tag; do
