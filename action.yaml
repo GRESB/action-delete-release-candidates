@@ -68,7 +68,7 @@ runs:
           echo "==> No releases found using filter '${release_identifier}'"
         fi
     - name: Authenticate to AWS
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@v6
       if: always() && inputs.release-identifier && ( (inputs.aws-access-key-id && inputs.aws-secret-access-key) || inputs.aws-role-arn )
       id: aws-credentials
       with:
@@ -160,7 +160,7 @@ runs:
         echo "version-ids=${version_ids}" >> "${GITHUB_OUTPUT}"
     - name: Delete GitHub Packages release candidates
       if: always() && inputs.release-identifier && inputs.github-package-name
-      uses: actions/delete-package-versions@v4
+      uses: actions/delete-package-versions@v5
       with:
         package-version-ids: ${{ steps.get-package-details.outputs.version-ids }}
         package-name: ${{ inputs.github-package-name }}

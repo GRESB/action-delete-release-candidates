@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Read Pushed Tag
@@ -24,7 +24,7 @@ jobs:
           read: true
           ref: ${{ github.ref }}
       - name: Set commit status as pending
-        uses: myrotvorets/set-commit-status-action@1.1.5
+        uses: myrotvorets/set-commit-status-action@v2.0.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           status: pending
@@ -43,7 +43,7 @@ jobs:
             Release action executed!
       - name: Echo read tag
         if: steps.tag.outputs.pr-number
-        uses: peter-evans/create-or-update-comment@v2
+        uses: peter-evans/create-or-update-comment@v5
         with:
           issue-number: ${{ steps.tag.outputs.pr-number }}
           body: |
@@ -52,7 +52,7 @@ jobs:
             SHA: ${{ steps.tag.outputs.sha }}
             Is Final: ${{ steps.tag.outputs.is-final }}
       - name: Set final commit status
-        uses: myrotvorets/set-commit-status-action@1.1.5
+        uses: myrotvorets/set-commit-status-action@v2.0.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           status: ${{ steps.release.outcome }}
